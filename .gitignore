@@ -1,0 +1,17 @@
+# Binaries
+agentguard
+/bin/
+
+# Go modules
+vendor/
+
+# Logs (Nunca comite logs de auditoria de clientes no github)
+*.log
+audit_bacen.log
+
+# OS Files
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/

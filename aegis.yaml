@@ -1,0 +1,18 @@
+# ==========================================
+# Aegis Core - Configuration File
+# ==========================================
+
+target_api: "http://localhost:9000"
+
+agents:
+  - id: "ia-health-bot"
+    modes:
+      - "CFM"
+
+  - id: "ia-fintech-support"
+    modes:
+      - "LGPD"      
+      - "BACEN_538" 
+
+  - id: "ia-super-admin"
+    modes: []
