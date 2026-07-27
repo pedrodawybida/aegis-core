@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pedrodawybida/aegis-core/internal/audit"
-	"github.com/pedrodawybida/aegis-core/internal/compliance"
+	"github.com/pedrodawybida/nexo-hub/internal/audit"
+	"github.com/pedrodawybida/nexo-hub/internal/compliance"
 )
 
 // AegisProxy is a specialized HTTP handler that wraps an httputil.ReverseProxy.
@@ -57,28 +57,32 @@ func (p *AegisProxy) SetDryRun(dryRun bool) {
 // ServeHTTP implements the http.Handler interface. It executes the core security pipeline:
 // Identity Check -> Policy Evaluation -> Audit Logging -> Forwarding.
 func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Handle Aegis System Endpoints
-	if r.URL.Path == "/_aegis/health" || r.URL.Path == "/healthz" {
+	// Handle System Endpoints (supporting /_nexo/ and /_aegis/ endpoints)
+	if r.URL.Path == "/_nexo/health" || r.URL.Path == "/_aegis/health" || r.URL.Path == "/healthz" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf(`{"status":"ok","service":"aegis-core","target_api":"%s","active_agents":%d,"dry_run":%t}`, p.targetURL.String(), len(p.policyDB), p.dryRun)))
+		w.Write([]byte(fmt.Sprintf(`{"status":"ok","service":"nexo-hub","target_api":"%s","active_agents":%d,"dry_run":%t}`, p.targetURL.String(), len(p.policyDB), p.dryRun)))
 		return
 	}
 
-	if r.URL.Path == "/_aegis/dashboard" || r.URL.Path == "/_aegis/console" {
+	if r.URL.Path == "/_nexo/dashboard" || r.URL.Path == "/_nexo/console" || r.URL.Path == "/_aegis/dashboard" || r.URL.Path == "/_aegis/console" {
 		p.serveDashboardHTML(w, r)
 		return
 	}
 
-	if r.URL.Path == "/_aegis/api/agents" {
+	if r.URL.Path == "/_nexo/api/agents" || r.URL.Path == "/_aegis/api/agents" {
 		p.serveAgentsAPI(w, r)
 		return
 	}
 
-	w.Header().Set("X-Aegis-Proxy", "aegis-core/v1.0")
+	w.Header().Set("X-Nexo-Proxy", "nexo-hub/v1.0")
+	w.Header().Set("X-Aegis-Proxy", "nexo-hub/v1.0")
 
-	// Extract Agent Token from Authorization header or X-Aegis-Agent-Id
-	agentToken := r.Header.Get("X-Aegis-Agent-Id")
+	// Extract Agent Token from Authorization header, X-Nexo-Agent-Id or X-Aegis-Agent-Id
+	agentToken := r.Header.Get("X-Nexo-Agent-Id")
+	if agentToken == "" {
+		agentToken = r.Header.Get("X-Aegis-Agent-Id")
+	}
 	if agentToken == "" {
 		authHeader := r.Header.Get("Authorization")
 		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {

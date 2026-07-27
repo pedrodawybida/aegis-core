@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/pedrodawybida/aegis-core/internal/audit"
-	"github.com/pedrodawybida/aegis-core/internal/compliance"
+	"github.com/pedrodawybida/nexo-hub/internal/audit"
+	"github.com/pedrodawybida/nexo-hub/internal/compliance"
 )
 
 func TestAegisProxyIntegration(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/pedrodawybida/aegis-core
+module github.com/pedrodawybida/nexo-hub
 
 go 1.26
 

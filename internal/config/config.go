@@ -4,7 +4,7 @@ package config
 import (
 	"os"
 
-	"github.com/pedrodawybida/aegis-core/internal/compliance"
+	"github.com/pedrodawybida/nexo-hub/internal/compliance"
 	"gopkg.in/yaml.v3"
 )
 
