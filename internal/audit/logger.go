@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -20,8 +21,9 @@ type AuditLog struct {
 	IPAddress   string `json:"ip_address"`
 }
 
-// Logger handles appending structured audit records to an immutable file.
+// Logger handles appending structured audit records to an immutable file in a thread-safe manner.
 type Logger struct {
+	mu   sync.Mutex
 	file *os.File
 }
 
@@ -36,7 +38,7 @@ func NewLogger(filePath string) (*Logger, error) {
 }
 
 // LogAction constructs an AuditLog entry and appends it to the file as JSON.
-// It also prints to standard output for real-time observability.
+// It is thread-safe and safe for concurrent invocations.
 func (l *Logger) LogAction(agentID, action, payload, result, ip string) {
 	entry := AuditLog{
 		Timestamp:   time.Now().UTC().Format(time.RFC3339),
@@ -47,12 +49,24 @@ func (l *Logger) LogAction(agentID, action, payload, result, ip string) {
 		IPAddress:   ip,
 	}
 
-	logBytes, _ := json.Marshal(entry)
-	l.file.Write(append(logBytes, '\n'))
+	logBytes, err := json.Marshal(entry)
+	if err != nil {
+		log.Printf("[AEGIS-AUDIT-ERROR] Failed to marshal log entry: %v", err)
+		return
+	}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if _, err := l.file.Write(append(logBytes, '\n')); err != nil {
+		log.Printf("[AEGIS-AUDIT-ERROR] Failed to write to audit log file: %v", err)
+	}
 	log.Printf("[AEGIS-AUDIT] %s", string(logBytes))
 }
 
-// Close safely closes the underlying audit file.
+// Close safely flushes and closes the underlying audit file.
 func (l *Logger) Close() error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	return l.file.Close()
 }

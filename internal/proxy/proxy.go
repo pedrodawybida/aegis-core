@@ -50,10 +50,40 @@ func NewAegisProxy(target string, logger *audit.Logger, policyDB map[string]comp
 // ServeHTTP implements the http.Handler interface. It executes the core security pipeline:
 // Identity Check -> Policy Evaluation -> Audit Logging -> Forwarding.
 func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	agentToken := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+	// Handle Aegis System Endpoints
+	if r.URL.Path == "/_aegis/health" || r.URL.Path == "/healthz" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf(`{"status":"ok","service":"aegis-core","target_api":"%s","active_agents":%d}`, p.targetURL.String(), len(p.policyDB))))
+		return
+	}
+
+	if r.URL.Path == "/_aegis/dashboard" || r.URL.Path == "/_aegis/console" {
+		p.serveDashboardHTML(w, r)
+		return
+	}
+
+	if r.URL.Path == "/_aegis/api/agents" {
+		p.serveAgentsAPI(w, r)
+		return
+	}
+
+	w.Header().Set("X-Aegis-Proxy", "aegis-core/v1.0")
+
+	// Extract Agent Token from Authorization header or X-Aegis-Agent-Id
+	agentToken := r.Header.Get("X-Aegis-Agent-Id")
+	if agentToken == "" {
+		authHeader := r.Header.Get("Authorization")
+		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
+			agentToken = strings.TrimSpace(authHeader[7:])
+		} else {
+			agentToken = authHeader
+		}
+	}
+
 	ip := r.RemoteAddr
 	action := fmt.Sprintf("%s %s", r.Method, r.URL.Path)
-	
+
 	var payload string
 	if r.Body != nil {
 		bodyBytes, _ := io.ReadAll(r.Body)
@@ -64,7 +94,10 @@ func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 1. Identity Check
 	if agentToken == "" {
 		p.logger.LogAction("UNKNOWN", action, payload, "BLOCKED_NO_IDENTITY", ip)
-		http.Error(w, `{"error": "Aegis: Missing Identity Token"}`, http.StatusUnauthorized)
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Aegis-Compliance-Status", "BLOCKED_NO_IDENTITY")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error": "Aegis: Missing Identity Token. Provide Bearer token or X-Aegis-Agent-Id"}`))
 		return
 	}
 
@@ -72,15 +105,20 @@ func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	policy, exists := p.policyDB[agentToken]
 	if !exists {
 		p.logger.LogAction(agentToken, action, payload, "BLOCKED_AGENT_NOT_FOUND", ip)
-		http.Error(w, `{"error": "Aegis: Agent identity not recognized"}`, http.StatusForbidden)
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Aegis-Compliance-Status", "BLOCKED_AGENT_NOT_FOUND")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(fmt.Sprintf(`{"error": "Aegis: Agent identity '%s' not recognized"}`, agentToken)))
 		return
 	}
 
 	// 3. Compliance Verification
 	allowed, reason := compliance.EvaluateRequest(policy, r.Method, r.URL.Path)
-	
-	// 4. Immutable Audit
+
+	// 4. Immutable Audit Log
 	p.logger.LogAction(agentToken, action, payload, reason, ip)
+
+	w.Header().Set("X-Aegis-Compliance-Status", reason)
 
 	if !allowed {
 		w.Header().Set("Content-Type", "application/json")

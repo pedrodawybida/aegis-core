@@ -21,7 +21,7 @@ type Config struct {
 }
 
 // LoadConfig reads and unmarshals the YAML configuration from the given file path.
-// It returns an error if the file cannot be read or parsed.
+// It allows environment variable overrides and validates required fields.
 func LoadConfig(filePath string) (*Config, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -32,6 +32,15 @@ func LoadConfig(filePath string) (*Config, error) {
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	// Environment variable override for TargetAPI
+	if envTarget := os.Getenv("AEGIS_TARGET_API"); envTarget != "" {
+		cfg.TargetAPI = envTarget
+	}
+
+	if cfg.TargetAPI == "" {
+		cfg.TargetAPI = "http://localhost:9000"
 	}
 
 	return &cfg, nil
