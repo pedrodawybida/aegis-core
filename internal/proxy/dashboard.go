@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// serveDashboardHTML renders the Aegis Web UI Console for live inspection and testing.
+// serveDashboardHTML renders the Nexo Hub Web UI Console for live inspection and testing.
 func (p *AegisProxy) serveDashboardHTML(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -19,6 +19,12 @@ func (p *AegisProxy) serveAgentsAPI(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"target_api": p.targetURL.String(),
 		"agents":     p.policyDB,
+		"nsep": map[string]interface{}{
+			"status":            "ACTIVE",
+			"js_engine":         "goja",
+			"mcp_endpoint":      "/_nexo/mcp",
+			"context_reduction": "Up to 90% savings",
+		},
 	})
 }
 
@@ -27,7 +33,7 @@ const dashboardHTMLTemplate = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛡️ Aegis Core - Compliance & Security Console</title>
+    <title>🛡️ Nexo Hub - Compliance & NSEP Protocol Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -42,15 +48,15 @@ const dashboardHTMLTemplate = `<!DOCTYPE html>
         <div class="flex items-center space-x-3">
             <span class="text-3xl">🛡️</span>
             <div>
-                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Aegis Core</h1>
-                <p class="text-xs text-gray-400">BACEN 538/2025 & LGPD AI Compliance Shield</p>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Nexo Hub</h1>
+                <p class="text-xs text-gray-400">Home of NSEP (Nexo Secure Execution Protocol) & BACEN 538 Compliance Engine</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800 pulse-green">
-                <span class="w-2 h-2 mr-2 rounded-full bg-emerald-400 animate-ping"></span> Live Proxy Active
+                <span class="w-2 h-2 mr-2 rounded-full bg-emerald-400 animate-ping"></span> Live Proxy & NSEP Active
             </span>
-            <a href="https://github.com/pedrodawybida/aegis-core" target="_blank" class="text-xs text-gray-400 hover:text-white transition">GitHub Repo ↗</a>
+            <a href="https://github.com/pedrodawybida/nexo-hub" target="_blank" class="text-xs text-gray-400 hover:text-white transition">GitHub Repo ↗</a>
         </div>
     </header>
 
@@ -66,157 +72,102 @@ const dashboardHTMLTemplate = `<!DOCTYPE html>
             </div>
 
             <div class="glass p-5 rounded-2xl">
-                <p class="text-xs font-semibold uppercase text-gray-400">Latência do Proxy</p>
-                <p class="text-2xl font-bold text-emerald-400 mt-1">&lt; 0.1 ms</p>
-                <p class="text-xs text-emerald-500/80 mt-2">⚡ Ultra-low overhead</p>
+                <p class="text-xs font-semibold uppercase text-gray-400">NSEP Protocol</p>
+                <p class="text-xl font-bold text-emerald-400 mt-1">90% Context Savings</p>
+                <p class="text-xs text-emerald-500/80 mt-2">⚡ Sandbox Goja (0% CGO)</p>
             </div>
 
             <div class="glass p-5 rounded-2xl">
-                <p class="text-xs font-semibold uppercase text-gray-400">Agentes Ativos</p>
-                <p class="text-2xl font-bold text-indigo-400 mt-1" id="agent-count">3</p>
-                <p class="text-xs text-gray-500 mt-2">Identidades Não-Humanas</p>
+                <p class="text-xs font-semibold uppercase text-gray-400">Transporte MCP</p>
+                <p class="text-xl font-bold text-indigo-400 mt-1">/_nexo/mcp</p>
+                <p class="text-xs text-gray-500 mt-2">Claude, ChatGPT & Cursor Ready</p>
             </div>
 
             <div class="glass p-5 rounded-2xl">
                 <p class="text-xs font-semibold uppercase text-gray-400">Conformidade BACEN</p>
                 <p class="text-2xl font-bold text-emerald-400 mt-1">100% OK</p>
-                <p class="text-xs text-gray-500 mt-2">CMN 5.274 & LGPD</p>
+                <p class="text-xs text-gray-500 mt-2">CMN 5.274 & LGPD Audit</p>
             </div>
         </div>
 
-        <!-- Interactive Agent Testing Console -->
+        <!-- Interactive Testing Console -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 glass p-6 rounded-2xl space-y-4">
                 <h2 class="text-lg font-semibold flex items-center gap-2">
-                    <span>⚡ Simulator de Tool-Calling</span>
+                    <span>⚡ Simulação de Tool-Calling & NSEP</span>
                 </h2>
-                <p class="text-xs text-gray-400">Simule chamadas de um Agente de IA para testar as regras de compliance em tempo real.</p>
+                <p class="text-xs text-gray-400">Simule chamadas de um Agente de IA para testar as regras de compliance e execução do NSEP.</p>
                 
                 <div>
                     <label class="block text-xs font-medium text-gray-300 mb-1">Selecione o Agente de IA</label>
                     <select id="agent-select" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500">
                         <option value="ia-fintech-support">ia-fintech-support (LGPD + BACEN 538)</option>
                         <option value="ia-health-bot">ia-health-bot (CFM)</option>
-                        <option value="ia-super-admin">ia-super-admin (Sem restrições)</option>
-                        <option value="ia-desconhecida">ia-desconhecida (NÃO Cadastrada)</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Método HTTP & Rota</label>
-                    <div class="flex gap-2">
-                        <select id="method-select" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white font-mono">
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                            <option value="PUT">PUT</option>
-                            <option value="DELETE">DELETE</option>
-                        </select>
-                        <input id="path-input" type="text" value="/pix/validar" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg p-2 text-sm text-white font-mono" placeholder="/rota">
-                    </div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Método HTTP</label>
+                    <select id="method-select" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500">
+                        <option value="POST">POST (Permitido em /pix/validar)</option>
+                        <option value="GET">GET (Bloqueado em /clientes)</option>
+                        <option value="DELETE">DELETE (Bloqueado em /transacoes/99)</option>
+                    </select>
                 </div>
 
-                <div class="flex gap-2 pt-2">
-                    <button onclick="testQuickPath('/pix/validar', 'POST')" class="text-xs px-2.5 py-1 bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300">✓ Safe POST</button>
-                    <button onclick="testQuickPath('/clientes', 'GET')" class="text-xs px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/60 border border-rose-800 text-rose-300">🚫 LGPD Get</button>
-                    <button onclick="testQuickPath('/transacoes/1', 'DELETE')" class="text-xs px-2.5 py-1 bg-rose-950/60 hover:bg-rose-900/60 border border-rose-800 text-rose-300">🚫 BACEN Delete</button>
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Rota da API</label>
+                    <input type="text" id="route-input" value="/pix/validar" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500" />
                 </div>
 
-                <button onclick="runTestSimulation()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-lg shadow-lg text-sm transition">
-                    Executar Chamada no Aegis Proxy 🚀
+                <button onclick="sendSimulatedRequest()" class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg transition duration-200">
+                    Enviar Requisição via Nexo Hub
                 </button>
-
-                <!-- Test Result Display -->
-                <div id="test-result-box" class="hidden p-4 rounded-xl border text-sm font-mono space-y-2"></div>
             </div>
 
-            <!-- Active Policies Cards -->
-            <div class="lg:col-span-2 glass p-6 rounded-2xl space-y-4">
-                <h2 class="text-lg font-semibold flex items-center justify-between">
-                    <span>🤖 Políticas de Agentes Carregadas (aegis.yaml)</span>
-                    <span class="text-xs text-blue-400 font-normal">O(1) Memory Engine</span>
-                </h2>
-                
-                <div id="agent-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-4 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-blue-400 text-sm">ia-fintech-support</span>
-                            <span class="px-2 py-0.5 text-[10px] bg-blue-950 text-blue-300 border border-blue-800 rounded">Fintech Bot</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1 text-xs">
-                            <span class="px-2 py-0.5 bg-rose-950 text-rose-300 border border-rose-800 rounded">LGPD</span>
-                            <span class="px-2 py-0.5 bg-amber-950 text-amber-300 border border-amber-800 rounded">BACEN_538</span>
-                        </div>
-                        <p class="text-[11px] text-gray-400">Proteção contra mutações não autorizadas e vazamento em massa de dados de clientes.</p>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-gray-900/80 border border-gray-800 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-emerald-400 text-sm">ia-health-bot</span>
-                            <span class="px-2 py-0.5 text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 rounded">HealthTech Bot</span>
-                        </div>
-                        <div class="flex flex-wrap gap-1 text-xs">
-                            <span class="px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded">CFM</span>
-                        </div>
-                        <p class="text-[11px] text-gray-400">Restrição estrita a prontuários médicos sensíveis conforme parecer CFM.</p>
-                    </div>
+            <!-- Log & Response Panel -->
+            <div class="lg:col-span-2 glass p-6 rounded-2xl flex flex-col space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold">📜 Replay de Execução & Logs de Auditoria</h2>
+                    <span class="text-xs text-gray-400">audit_bacen.log</span>
                 </div>
 
-                <!-- Commercial Enterprise Banner -->
-                <div class="p-4 rounded-xl bg-gradient-to-r from-indigo-950/80 to-purple-950/80 border border-indigo-800 flex items-center justify-between">
-                    <div>
-                        <h4 class="text-sm font-bold text-indigo-300">Quer Painel Completo para SSO & Relatórios PDF BACEN?</h4>
-                        <p class="text-xs text-gray-300">Conheça a versão Aegis Enterprise para Bancos e Fintechs com SLA 24/7.</p>
-                    </div>
-                    <a href="mailto:pedro@aegisbr.com?subject=Interesse%20Aegis%20Enterprise" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg transition whitespace-nowrap">Falar com Consultor</a>
+                <div id="response-box" class="flex-1 bg-gray-950 p-4 rounded-xl font-mono text-xs overflow-auto border border-gray-800 text-gray-300 min-h-[250px]">
+                    // Aguardando simulação...
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        function testQuickPath(path, method) {
-            document.getElementById('path-input').value = path;
-            document.getElementById('method-select').value = method;
-        }
+        async function sendSimulatedRequest() {
+            var agent = document.getElementById('agent-select').value;
+            var method = document.getElementById('method-select').value;
+            var route = document.getElementById('route-input').value;
+            var box = document.getElementById('response-box');
 
-        async function fetchInfo() {
-            try {
-                const res = await fetch('/_aegis/health');
-                const data = await res.json();
-                document.getElementById('target-api').innerText = data.target_api;
-                document.getElementById('agent-count').innerText = data.active_agents;
-            } catch(e){}
-        }
-        fetchInfo();
-
-        async function runTestSimulation() {
-            const agent = document.getElementById('agent-select').value;
-            const method = document.getElementById('method-select').value;
-            const path = document.getElementById('path-input').value;
-            const box = document.getElementById('test-result-box');
-
-            box.classList.remove('hidden', 'bg-emerald-950/80', 'bg-rose-950/80', 'border-emerald-800', 'border-rose-800');
-            box.innerHTML = '<span class="text-gray-400">Avaliando requisição no Aegis Proxy...</span>';
+            box.innerHTML = '<span class="text-yellow-400">⏳ Enviando requisição através do Nexo Hub...</span>';
 
             try {
-                const headers = {};
-                if (agent !== 'ia-desconhecida') {
-                    headers['Authorization'] = 'Bearer ' + agent;
-                }
-                const response = await fetch(path, { method: method, headers: headers });
-                const status = response.headers.get('X-Aegis-Compliance-Status') || response.status;
-                const bodyText = await response.text();
+                var res = await fetch(route, {
+                    method: method,
+                    headers: {
+                        'Authorization': 'Bearer ' + agent,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                if (response.ok) {
-                    box.classList.add('bg-emerald-950/80', 'border-emerald-800', 'text-emerald-300');
-                    box.innerHTML = '<strong>✓ REQUISIÇÃO PERMITIDA (HTTP 200 OK)</strong><br/><span class="text-xs text-gray-300">Status Aegis: ' + status + '</span><br/><span class="text-xs text-emerald-400">Resposta: ' + bodyText + '</span>';
-                } else {
-                    box.classList.add('bg-rose-950/80', 'border-rose-800', 'text-rose-300');
-                    box.innerHTML = '<strong>🚫 VIOLAÇÃO DE COMPLIANCE BLOQUEADA (HTTP ' + response.status + ')</strong><br/><span class="text-xs text-rose-200">Motivo Regulatório: <strong>' + status + '</strong></span><br/><span class="text-xs text-gray-300">' + bodyText + '</span>';
-                }
-            } catch(err) {
-                box.classList.add('bg-rose-950/80', 'border-rose-800', 'text-rose-300');
-                box.innerHTML = '<strong>Erro ao conectar com o proxy:</strong> ' + err.message;
+                var statusHeader = res.headers.get('X-Nexo-Compliance-Status') || res.headers.get('X-Aegis-Compliance-Status') || 'UNKNOWN';
+                var body = await res.json().catch(function() { return { message: 'Sem corpo na resposta' }; });
+
+                var statusBadge = res.status === 200 ? '<span class="text-emerald-400 font-bold">[APROVADO]</span>' : '<span class="text-red-400 font-bold">[BLOQUEADO PELO NEXO HUB]</span>';
+
+                box.innerHTML = statusBadge + ' HTTP Status: ' + res.status + '\n' +
+                    'Status de Conformidade: ' + statusHeader + '\n' +
+                    'Identidade do Agente: ' + agent + '\n\n' +
+                    'Corpo da Resposta:\n' + JSON.stringify(body, null, 2);
+            } catch (err) {
+                box.innerHTML = '<span class="text-red-400">Erro na chamada: ' + err.message + '</span>';
             }
         }
     </script>
