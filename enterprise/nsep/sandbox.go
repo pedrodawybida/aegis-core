@@ -20,11 +20,15 @@ var (
 // CallHandler defines the signature for handling intercepting nsep.call() operations in Go.
 type CallHandler func(opID string, params map[string]interface{}) (interface{}, error)
 
+// SearchHandler defines the signature for handling nsep.search() discovery queries in Go.
+type SearchHandler func(query string) interface{}
+
 // Sandbox manages the execution environment for JS scripts in a secure Goja VM.
 type Sandbox struct {
-	Timeout  time.Duration
-	MaxCalls int
-	Handler  CallHandler
+	Timeout       time.Duration
+	MaxCalls      int
+	Handler       CallHandler
+	SearchHandler SearchHandler
 }
 
 // NewSandbox creates a new NSEP execution sandbox instance.
@@ -89,6 +93,23 @@ func (s *Sandbox) Execute(script string) (interface{}, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("nsep: failed to bind nsep.call: %w", err)
+	}
+
+	// Expose nsep.search() binding to JavaScript
+	err = nsepObj.Set("search", func(call goja.FunctionCall) goja.Value {
+		query := ""
+		if len(call.Arguments) >= 1 && !goja.IsUndefined(call.Arguments[0]) {
+			query = call.Arguments[0].String()
+		}
+
+		if s.SearchHandler != nil {
+			return vm.ToValue(s.SearchHandler(query))
+		}
+		return vm.ToValue([]interface{}{})
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("nsep: failed to bind nsep.search: %w", err)
 	}
 
 	if err := vm.Set("nsep", nsepObj); err != nil {
