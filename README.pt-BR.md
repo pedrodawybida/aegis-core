@@ -105,6 +105,7 @@ Você pode configurar o Aegis Core via argumentos de linha de comando ou variáv
 | `AEGIS_CONFIG` | `-config` | `aegis.yaml` | Caminho do arquivo de configuração YAML |
 | `AEGIS_LOG_FILE` | `-log` | `audit_bacen.log` | Caminho do arquivo de log imutável |
 | `AEGIS_TARGET_API` | - | `http://localhost:9000` | URL da API interna de destino protegida |
+| `AEGIS_DRY_RUN` | `-dry-run` | `false` | Ativa o Modo Sombra (Dry-Run / Audit-Only) sem bloquear requisições |
 
 ---
 

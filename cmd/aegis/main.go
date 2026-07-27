@@ -28,12 +28,17 @@ func main() {
 	configPathFlag := flag.String("config", getEnvOrDefault("AEGIS_CONFIG", "aegis.yaml"), "Path to aegis configuration file")
 	portFlag := flag.String("port", getEnvOrDefault("AEGIS_PORT", "8080"), "Port for Aegis Core proxy server")
 	logFileFlag := flag.String("log", getEnvOrDefault("AEGIS_LOG_FILE", "audit_bacen.log"), "Path to audit log file")
+	dryRunFlag := flag.Bool("dry-run", false, "Enable Dry-Run (Shadow / Audit-Only) Mode without blocking requests")
 	flag.Parse()
 
 	// 1. Load the dynamic configuration
 	cfg, err := config.LoadConfig(*configPathFlag)
 	if err != nil {
 		log.Fatalf("Fatal: Failed to read config file '%s': %v", *configPathFlag, err)
+	}
+
+	if *dryRunFlag {
+		cfg.DryRun = true
 	}
 
 	// 2. Initialize the Immutable Audit Logger
@@ -48,6 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Fatal: Failed to initialize Aegis Proxy: %v", err)
 	}
+	agProxy.SetDryRun(cfg.DryRun)
 
 	listenAddr := fmt.Sprintf(":%s", *portFlag)
 	server := &http.Server{

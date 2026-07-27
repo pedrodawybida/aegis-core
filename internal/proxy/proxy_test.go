@@ -107,4 +107,32 @@ func TestAegisProxyIntegration(t *testing.T) {
 			t.Errorf("Expected body 'Target API Response OK', got '%s'", string(body))
 		}
 	})
+
+	t.Run("Dry-Run Mode - Log Violation but Allow Forwarding", func(t *testing.T) {
+		agProxy.SetDryRun(true)
+		defer agProxy.SetDryRun(false)
+
+		req, _ := http.NewRequest("GET", fmt.Sprintf("%s/clientes", proxyServer.URL), nil)
+		req.Header.Set("Authorization", "Bearer token-fintech")
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Fatalf("Request failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		// Under Dry-Run mode, status code should be 200 OK because request was forwarded!
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected status 200 OK under Dry-Run, got %d", resp.StatusCode)
+		}
+
+		dryRunHeader := resp.Header.Get("X-Aegis-Dry-Run")
+		if dryRunHeader != "true" {
+			t.Errorf("Expected X-Aegis-Dry-Run header to be 'true', got '%s'", dryRunHeader)
+		}
+
+		statusHeader := resp.Header.Get("X-Aegis-Compliance-Status")
+		if statusHeader != "DRY_RUN_BLOCKED_LGPD_BULK_DATA_ACCESS_DENIED" {
+			t.Errorf("Expected DRY_RUN_BLOCKED_LGPD_BULK_DATA_ACCESS_DENIED status, got '%s'", statusHeader)
+		}
+	})
 }

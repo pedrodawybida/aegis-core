@@ -17,6 +17,7 @@ type AgentConfig struct {
 // Config represents the root structure of aegis.yaml.
 type Config struct {
 	TargetAPI string        `yaml:"target_api"`
+	DryRun    bool          `yaml:"dry_run"`
 	Agents    []AgentConfig `yaml:"agents"`
 }
 
@@ -37,6 +38,11 @@ func LoadConfig(filePath string) (*Config, error) {
 	// Environment variable override for TargetAPI
 	if envTarget := os.Getenv("AEGIS_TARGET_API"); envTarget != "" {
 		cfg.TargetAPI = envTarget
+	}
+
+	// Environment variable override for DryRun
+	if envDryRun := os.Getenv("AEGIS_DRY_RUN"); envDryRun == "true" || envDryRun == "1" {
+		cfg.DryRun = true
 	}
 
 	if cfg.TargetAPI == "" {

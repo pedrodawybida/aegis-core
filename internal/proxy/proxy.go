@@ -22,6 +22,7 @@ type AegisProxy struct {
 	reverse   *httputil.ReverseProxy
 	logger    *audit.Logger
 	policyDB  map[string]compliance.AgentPolicy
+	dryRun    bool
 }
 
 // NewAegisProxy initializes a new proxy instance pointing to the target URL.
@@ -44,7 +45,13 @@ func NewAegisProxy(target string, logger *audit.Logger, policyDB map[string]comp
 		reverse:   rp,
 		logger:    logger,
 		policyDB:  policyDB,
+		dryRun:    false,
 	}, nil
+}
+
+// SetDryRun enables or disables Dry-Run (Shadow / Audit-Only) Mode.
+func (p *AegisProxy) SetDryRun(dryRun bool) {
+	p.dryRun = dryRun
 }
 
 // ServeHTTP implements the http.Handler interface. It executes the core security pipeline:
@@ -54,7 +61,7 @@ func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/_aegis/health" || r.URL.Path == "/healthz" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf(`{"status":"ok","service":"aegis-core","target_api":"%s","active_agents":%d}`, p.targetURL.String(), len(p.policyDB))))
+		w.Write([]byte(fmt.Sprintf(`{"status":"ok","service":"aegis-core","target_api":"%s","active_agents":%d,"dry_run":%t}`, p.targetURL.String(), len(p.policyDB), p.dryRun)))
 		return
 	}
 
@@ -114,6 +121,15 @@ func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 3. Compliance Verification
 	allowed, reason := compliance.EvaluateRequest(policy, r.Method, r.URL.Path)
+
+	if p.dryRun && !allowed {
+		dryRunReason := fmt.Sprintf("DRY_RUN_%s", reason)
+		p.logger.LogAction(agentToken, action, payload, dryRunReason, ip)
+		w.Header().Set("X-Aegis-Compliance-Status", dryRunReason)
+		w.Header().Set("X-Aegis-Dry-Run", "true")
+		p.reverse.ServeHTTP(w, r)
+		return
+	}
 
 	// 4. Immutable Audit Log
 	p.logger.LogAction(agentToken, action, payload, reason, ip)

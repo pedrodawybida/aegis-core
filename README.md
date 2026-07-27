@@ -106,6 +106,7 @@ Configure Aegis Core via command-line flags or environment variables:
 | `AEGIS_CONFIG` | `-config` | `aegis.yaml` | Path to YAML configuration file |
 | `AEGIS_LOG_FILE` | `-log` | `audit_bacen.log` | Path to append-only immutable audit log file |
 | `AEGIS_TARGET_API` | - | `http://localhost:9000` | Target internal backend API URL |
+| `AEGIS_DRY_RUN` | `-dry-run` | `false` | Enable Dry-Run (Shadow / Audit-Only) Mode without blocking requests |
 
 ---
 
