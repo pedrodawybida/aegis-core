@@ -11,10 +11,12 @@ import (
 )
 
 // AuditLog represents the immutable log structure required by BACEN 538/2025.
-// It traces who (Agent), what (Action), when (Timestamp), and the Result.
+// It traces who (Agent), what (Action), when (Timestamp), and the Result, including NSEP execution correlation.
 type AuditLog struct {
 	Timestamp   string `json:"timestamp"`
 	AgentID     string `json:"agent_id"`
+	ExecutionID string `json:"execution_id,omitempty"`
+	Sequence    int    `json:"sequence_in_execution,omitempty"`
 	Action      string `json:"action"`
 	ToolPayload string `json:"tool_payload"`
 	Result      string `json:"result"`
@@ -40,9 +42,16 @@ func NewLogger(filePath string) (*Logger, error) {
 // LogAction constructs an AuditLog entry and appends it to the file as JSON.
 // It is thread-safe and safe for concurrent invocations.
 func (l *Logger) LogAction(agentID, action, payload, result, ip string) {
+	l.LogExecutionAction(agentID, "", action, payload, result, ip, 0)
+}
+
+// LogExecutionAction constructs an AuditLog entry with NSEP execution_id correlation.
+func (l *Logger) LogExecutionAction(agentID, executionID, action, payload, result, ip string, sequence int) {
 	entry := AuditLog{
 		Timestamp:   time.Now().UTC().Format(time.RFC3339),
 		AgentID:     agentID,
+		ExecutionID: executionID,
+		Sequence:    sequence,
 		Action:      action,
 		ToolPayload: payload,
 		Result:      result,
@@ -51,7 +60,7 @@ func (l *Logger) LogAction(agentID, action, payload, result, ip string) {
 
 	logBytes, err := json.Marshal(entry)
 	if err != nil {
-		log.Printf("[AEGIS-AUDIT-ERROR] Failed to marshal log entry: %v", err)
+		log.Printf("[NEXO-AUDIT-ERROR] Failed to marshal log entry: %v", err)
 		return
 	}
 
@@ -59,9 +68,9 @@ func (l *Logger) LogAction(agentID, action, payload, result, ip string) {
 	defer l.mu.Unlock()
 
 	if _, err := l.file.Write(append(logBytes, '\n')); err != nil {
-		log.Printf("[AEGIS-AUDIT-ERROR] Failed to write to audit log file: %v", err)
+		log.Printf("[NEXO-AUDIT-ERROR] Failed to write to audit log file: %v", err)
 	}
-	log.Printf("[AEGIS-AUDIT] %s", string(logBytes))
+	log.Printf("[NEXO-AUDIT] %s", string(logBytes))
 }
 
 // Close safely flushes and closes the underlying audit file.
