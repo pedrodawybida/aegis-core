@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/pedrodawybida/nexo-hub/enterprise/nsep"
 	"github.com/pedrodawybida/nexo-hub/internal/audit"
 	"github.com/pedrodawybida/nexo-hub/internal/compliance"
 )
@@ -22,6 +23,7 @@ type AegisProxy struct {
 	reverse   *httputil.ReverseProxy
 	logger    *audit.Logger
 	policyDB  map[string]compliance.AgentPolicy
+	mcpServer *nsep.MCPServer
 	dryRun    bool
 }
 
@@ -40,24 +42,25 @@ func NewAegisProxy(target string, logger *audit.Logger, policyDB map[string]comp
 		req.Host = tURL.Host
 	}
 
+	mcpServer := nsep.BuildDefaultMCPServer(logger, nil)
+
 	return &AegisProxy{
 		targetURL: tURL,
 		reverse:   rp,
 		logger:    logger,
 		policyDB:  policyDB,
+		mcpServer: mcpServer,
 		dryRun:    false,
 	}, nil
 }
 
-// SetDryRun enables or disables Dry-Run (Shadow / Audit-Only) Mode.
+// SetDryRun enables or disables dry-run (shadow/audit-only) mode.
 func (p *AegisProxy) SetDryRun(dryRun bool) {
 	p.dryRun = dryRun
 }
 
-// ServeHTTP implements the http.Handler interface. It executes the core security pipeline:
-// Identity Check -> Policy Evaluation -> Audit Logging -> Forwarding.
+// ServeHTTP intercepts incoming requests, verifies compliance, and forwards if allowed.
 func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Handle System Endpoints (supporting /_nexo/ and /_aegis/ endpoints)
 	if r.URL.Path == "/_nexo/health" || r.URL.Path == "/_aegis/health" || r.URL.Path == "/healthz" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -90,6 +93,16 @@ func (p *AegisProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			agentToken = authHeader
 		}
+	}
+
+	policy, _ := p.policyDB[agentToken]
+
+	if r.URL.Path == "/_nexo/mcp" || r.URL.Path == "/mcp" {
+		if agentToken == "" {
+			agentToken = "mcp-agent"
+		}
+		p.mcpServer.HandleHTTP(agentToken, policy, w, r, nil)
+		return
 	}
 
 	ip := r.RemoteAddr
