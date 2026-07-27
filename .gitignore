@@ -1,6 +1,12 @@
 # Binaries
+aegis
 agentguard
 /bin/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
 
 # Go modules
 vendor/
@@ -12,6 +18,7 @@ audit_bacen.log
 # OS Files
 .DS_Store
 
-# IDEs
+# IDEs & Drafts
 .vscode/
 .idea/
+DEVTO_POST.md

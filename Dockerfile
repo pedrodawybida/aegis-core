@@ -1,16 +1,22 @@
-FROM golang:1.21-alpine AS builder
+# Build stage
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
+
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o /aegis ./cmd/aegis/main.go
 
-FROM alpine:latest
-WORKDIR /root/
-COPY --from=builder /aegis .
-COPY aegis.yaml .
+# Build statically linked binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /aegis ./cmd/aegis/main.go
+
+# Production zero-overhead scratch runtime stage
+FROM scratch
+
+WORKDIR /app
+COPY --from=builder /aegis /app/aegis
+COPY aegis.yaml /app/aegis.yaml
 
 EXPOSE 8080
-CMD ["./aegis"]
+ENTRYPOINT ["/app/aegis"]
