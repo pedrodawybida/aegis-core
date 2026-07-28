@@ -1,0 +1,8 @@
+# Nexo Hub Template: BACEN 538/2025 & CMN 5.274 Compliance Policy
+target_api: "https://api.banco.com.br"
+
+agents:
+  - id: "ia-financial-agent"
+    modes:
+      - "BACEN_538"
+      - "LGPD"

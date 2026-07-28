@@ -1,0 +1,7 @@
+# Nexo Hub Template: SOC 2 Type II Non-Human Identity Security Policy
+target_api: "https://api.saas.com"
+
+agents:
+  - id: "ia-support-bot"
+    modes:
+      - "LGPD"

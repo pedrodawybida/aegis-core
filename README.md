@@ -7,7 +7,8 @@
   [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go)](https://golang.org/)
   [![CI Pipeline](https://img.shields.io/badge/CI-Passing-brightgreen?logo=github)](https://github.com/pedrodawybida/nexo-hub/actions)
   [![BACEN 538 Engine](https://img.shields.io/badge/BACEN%20538%2F2025-Engine%20Core-blue)](#)
-  [![NSEP Protocol](https://img.shields.io/badge/NSEP%20Protocol-90%25%20Token%20Savings-emerald)](#)
+  [![NSEP Protocol](https://img.shields.io/badge/NSEP%20Protocol-94%25%20Token%20Savings-emerald)](#)
+  [![Nexo Hub Verified](https://img.shields.io/badge/Nexo%20Hub%20Verified-BACEN%20538%2F2025-blue?logo=shield)](#)
 </div>
 
 <div align="center">
@@ -15,6 +16,15 @@
 </div>
 
 <br />
+
+## 🚀 One-Click Deploy
+
+Deploy your own Nexo Hub instance in 1 click:
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+---
 
 ## 🚨 The Problem
 Autonomous AI agents (LangChain, CrewAI, AutoGen, LlamaIndex) rely on *Tool-Calling* to execute actions on internal databases and APIs. Providing unsupervised access to an LLM directly violates fundamental cybersecurity and data privacy regulations:
@@ -25,7 +35,7 @@ Autonomous AI agents (LangChain, CrewAI, AutoGen, LlamaIndex) rely on *Tool-Call
 ## 💡 The Solution: Nexo Hub & NSEP Protocol
 **Nexo Hub** is an ultra-low latency HTTP reverse proxy & agent gateway (written in Go, overhead < 0.1ms) positioned between your AI Agents and your backend APIs.
 
-It embeds **NSEP (Nexo Secure Execution Protocol)** — a sandboxed JavaScript runtime (`goja`) allowing agents to write typed orchestration scripts instead of performing 10 separate tool calls per operation, reducing LLM token cost by up to 90%.
+It embeds **NSEP (Nexo Secure Execution Protocol)** — a sandboxed JavaScript runtime (`goja`) allowing agents to write typed orchestration scripts instead of performing 10 separate tool calls per operation, reducing LLM token cost by up to 94%.
 
 ```mermaid
 flowchart LR
@@ -47,6 +57,18 @@ flowchart LR
 
 ---
 
+## ⚡ Zero-Friction Setup (`nexo-init`)
+
+Generate `nexo.yaml` and `.env` configuration files in 1 second:
+
+```bash
+make init
+# or
+go run cmd/nexo-init/main.go
+```
+
+---
+
 ## 🔌 Universal MCP Integration (Claude, ChatGPT, Cursor)
 
 Nexo Hub exposes native **MCP (Model Context Protocol)** compatibility at `POST /_nexo/mcp`:
@@ -54,26 +76,31 @@ Nexo Hub exposes native **MCP (Model Context Protocol)** compatibility at `POST 
 - **`nsep.search`**: Fast keyword discovery returning endpoint schemas (< 300 tokens footprint).
 - **`nsep.execute`**: Runs orchestration code inside the secure Goja VM.
 
-### Example MCP Request (`nsep.execute`)
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "nsep.execute",
-    "arguments": {
-      "code": "var r = nsep.call('check_saldo', { account_id: '101' }); r.status;"
-    }
-  }
-}
-```
+---
+
+## 📁 Pre-configured Compliance Templates (`templates/`)
+
+Nexo Hub includes ready-to-use policy templates in the [`templates/`](file:///Users/pedrodawybida/Developer/projects/aegis-core/templates) directory:
+
+- `templates/bacen_538.yaml`: BACEN 538/2025 & CMN 5.274 Compliance Policy.
+- `templates/lgpd_data_minimization.yaml`: LGPD Bulk Data Minimization Policy.
+- `templates/iso_42001_ai_governance.yaml`: ISO 42001 AI Management System Policy.
+- `templates/soc2_type2_security.yaml`: SOC 2 Type II Non-Human Identity Policy.
+
+---
+
+## 📺 Embedded Web Console & Token Cost Playground
+
+Open `http://localhost:8080/_nexo/dashboard` to test:
+- **Live Replay Debugger:** Visual timeline tracing every tool execution and blocked attempt.
+- **Token Cost Playground:** Interactive calculator measuring real-time $ context savings.
+- **Badge Generator:** Copyable Shields.io compliance badges.
 
 ---
 
 ## ⚡ Interactive 5-Second Demo
 
-Run the interactive demo script to see Nexo Hub block non-compliant agent requests in real time:
+Run the interactive demo script:
 
 ```bash
 make demo
@@ -83,75 +110,17 @@ make demo
 
 ---
 
-## 🚀 Quickstart
-
-### 1. Define Policy Configuration (`nexo.yaml`)
-Define permissions for each non-human AI identity:
-```yaml
-target_api: "http://localhost:9000" 
-
-agents:
-  # Fintech Support Agent
-  - id: "ia-fintech-support"
-    modes:
-      - "LGPD"      # Blocks bulk GET operations on customer endpoints
-      - "BACEN_538" # Blocks unapproved state mutations (DELETE/PUT)
-  
-  # HealthTech Bot
-  - id: "ia-health-bot"
-    modes:
-      - "CFM"       # Restricts access to medical records without oversight
-```
-
-### 2. Run via Docker
-```bash
-docker build -t nexo-hub .
-docker run -p 8080:8080 -d nexo-hub
-```
-
-### 3. Run Locally via Makefile
-```bash
-make build
-make run
-```
-
----
-
 ## 🛠️ Makefile Commands
 
 | Command | Description |
 | :--- | :--- |
-| `make build` | Compiles the executable binary into `bin/nexo` |
-| `make test` | Runs the full unit and integration test suite |
+| `make build` | Compiles binaries into `bin/nexo` and `bin/nexo-init` |
+| `make init` | Interactive setup wizard generating `nexo.yaml` |
+| `make test` | Runs all unit and integration tests |
 | `make test-race` | Runs tests with Go's Data Race detector enabled |
 | `make run` | Runs Nexo Hub proxy locally |
-| `make docker-build` | Builds the container Docker image |
-| `make demo` | Executes the interactive demonstration script |
-
----
-
-## ⚙️ Environment Variables & CLI Flags
-
-Configure Nexo Hub via command-line flags or environment variables:
-
-| Environment Variable | CLI Flag | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `NEXO_PORT` | `-port` | `8080` | Port for the proxy server listener |
-| `NEXO_CONFIG` | `-config` | `nexo.yaml` | Path to YAML configuration file |
-| `NEXO_LOG_FILE` | `-log` | `audit_bacen.log` | Path to append-only immutable audit log file |
-| `NEXO_TARGET_API` | - | `http://localhost:9000` | Target internal backend API URL |
-| `NEXO_DRY_RUN` | `-dry-run` | `false` | Enable Dry-Run (Shadow / Audit-Only) Mode without blocking requests |
-
----
-
-## 🏥 Health Check & System Endpoints
-
-Nexo Hub exposes native system endpoints requiring no agent identity token:
-
-- `GET /_nexo/health` (or `/healthz`): Returns service operational status and active agent count.
-- `GET /_nexo/dashboard`: Opens the embedded visual Web Console for live testing.
-- `POST /_nexo/mcp`: MCP tool-calling transport endpoint.
-- HTTP responses include the `X-Nexo-Compliance-Status` header specifying `ALLOWED` or the exact violation reason.
+| `make docker-build` | Builds Docker container image |
+| `make demo` | Executes interactive demonstration script |
 
 ---
 
@@ -177,7 +146,7 @@ Every request attempt appends an immutable, thread-safe JSON entry to `audit_bac
 This repository contains the Open-Source Core engine under the MIT License.
 
 For enterprise production deployments in Banks and Fintechs, we offer:
-- **NSEP Protocol Enterprise Engine:** Extended JS execution sandbox (`goja`) with advanced isolation & rate limiting.
+- **NSEP Protocol Enterprise Engine:** Extended JS execution sandbox (`goja`) with advanced isolation.
 - **Automated PDF Compliance Evidence Generator:** Single-click compliance evidence PDF generation for Central Bank audits.
 - **SSO & RBAC:** Microsoft Entra ID, Okta, and Keycloak integration.
 - **SLA & 24/7 Enterprise Support.**

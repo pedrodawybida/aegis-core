@@ -1,0 +1,8 @@
+# Nexo Hub Template: ISO/IEC 42001 Artificial Intelligence Management System (AIMS)
+target_api: "https://api.enterprise.com"
+
+agents:
+  - id: "ia-enterprise-agent"
+    modes:
+      - "LGPD"
+      - "BACEN_538"
