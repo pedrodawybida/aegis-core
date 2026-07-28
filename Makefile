@@ -15,6 +15,10 @@ help:
 
 build:
 	go build -o bin/nexo cmd/nexo/main.go
+	go build -o bin/nexo-init cmd/nexo-init/main.go
+
+init:
+	go run cmd/nexo-init/main.go
 
 test:
 	go test -v ./...
