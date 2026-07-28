@@ -203,7 +203,25 @@ func (m *MCPServer) toJSONString(v interface{}) string {
 
 // BuildDefaultMCPServer helper creates an MCP Server pre-configured with discovery engine and executor.
 func BuildDefaultMCPServer(logger *audit.Logger, operations map[string]OperationTarget) *MCPServer {
-	disc := NewDiscoveryEngine(nil)
+	if operations == nil {
+		operations = map[string]OperationTarget{
+			"list_clientes":  {Method: "GET", Path: "/clientes"},
+			"delete_conta":   {Method: "DELETE", Path: "/transacoes/99"},
+			"check_saldo":    {Method: "GET", Path: "/saldo/detalhes"},
+			"validar_pix":    {Method: "POST", Path: "/pix/validar"},
+			"get_prontuario": {Method: "GET", Path: "/prontuarios/101"},
+		}
+	}
+
+	catalog := []OperationMetadata{
+		{ID: "list_clientes", Method: "GET", Path: "/clientes", Description: "List customer data records", ComplianceMode: "LGPD"},
+		{ID: "delete_conta", Method: "DELETE", Path: "/transacoes/{id}", Description: "Delete account mutation", ComplianceMode: "BACEN_538"},
+		{ID: "check_saldo", Method: "GET", Path: "/saldo/detalhes", Description: "Retrieve account balance", ComplianceMode: "BACEN_538"},
+		{ID: "validar_pix", Method: "POST", Path: "/pix/validar", Description: "Validate PIX transaction"},
+		{ID: "get_prontuario", Method: "GET", Path: "/prontuarios/{id}", Description: "Retrieve medical records", ComplianceMode: "CFM"},
+	}
+
+	disc := NewDiscoveryEngine(catalog)
 	exec := NewExecutor(operations, logger, 5*time.Second, 50)
 	return NewMCPServer(exec, disc)
 }

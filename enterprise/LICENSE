@@ -1,0 +1,29 @@
+NEXO HUB ENTERPRISE EDITION COMMERCIAL LICENSE
+
+Copyright (c) 2026 Pedro Dawybida / Nexo Hub. All rights reserved.
+
+Commercial License Terms & Scope:
+
+1. DEFINITIONS
+"Software" refers to all source code, binaries, protocols (including NSEP), interfaces, and assets contained within the `enterprise/` directory of Nexo Hub.
+"Licensor" refers to Pedro Dawybida / Nexo Hub.
+"Licensee" refers to the individual or legal entity accessing or utilizing the Software.
+
+2. EXCLUSION FROM MIT LICENSE
+The root MIT License of this repository DOES NOT apply to any files, modules, or code located within the `enterprise/` directory. All contents within `enterprise/` are strictly governed by this Commercial License Agreement.
+
+3. GRANT OF COMMERCIAL LICENSE
+Subject to the terms of this Agreement and payment of the applicable Enterprise License fees, Licensor grants Licensee a non-exclusive, non-transferable, revocable license to execute and deploy the Enterprise Edition of Nexo Hub.
+
+4. RESTRICTIONS
+Licensee shall not:
+- Sublicense, resell, rent, lease, or distribute the Enterprise Edition source code or license keys to third parties.
+- Reverse engineer, decompile, or attempt to bypass the license key verification mechanism.
+- Remove or alter any copyright, trademark, or proprietary notices contained within the Software.
+
+5. DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+For enterprise license keys, activations, or commercial support:
+Email: pedro@nexohub.lat
+Website: https://nexohub.lat

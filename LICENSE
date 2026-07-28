@@ -19,3 +19,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+LICENSE SCOPE & ENTERPRISE EXCEPTIONS:
+The MIT License applies strictly to the open-source Community Core files outside the `enterprise/` directory.
+All contents, source code, protocols (including NSEP), and assets located within the `enterprise/` directory are NOT covered by the MIT License and are governed exclusively by the Nexo Hub Enterprise Edition Commercial License specified in `enterprise/LICENSE`.
